@@ -337,6 +337,7 @@ async def test_command(
     text = body.get("text", "")
     answer = await _handle_command(text, "test-user", db)
     return {"response": answer}
+@router.get("/config")
 async def get_integration_config(current_user: User = Depends(get_current_user)):
     """Return which integrations are currently configured."""
     return {
