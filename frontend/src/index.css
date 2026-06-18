@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { @apply text-gray-900 antialiased; }
+}
+
+.prose pre { @apply !bg-transparent !p-0; }
