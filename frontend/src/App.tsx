@@ -23,6 +23,9 @@ import IntegrationsPage from './pages/IntegrationsPage'
 import AutonomousEngineerPage from './pages/AutonomousEngineerPage'
 import AgentsPage from './pages/AgentsPage'
 import EvalPage from './pages/EvalPage'
+import HealthScorePage from './pages/HealthScorePage'
+import GovernancePage from './pages/GovernancePage'
+import ReportsPage from './pages/ReportsPage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -56,6 +59,9 @@ export default function App() {
             <Route path="/autonomous-engineer" element={<AutonomousEngineerPage />} />
             <Route path="/agents" element={<AgentsPage />} />
             <Route path="/eval" element={<EvalPage />} />
+            <Route path="/health-score" element={<HealthScorePage />} />
+            <Route path="/governance" element={<GovernancePage />} />
+            <Route path="/reports" element={<ReportsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

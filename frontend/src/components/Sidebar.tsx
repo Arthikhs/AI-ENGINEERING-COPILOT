@@ -3,7 +3,7 @@ import {
   LayoutDashboard, GitBranch, MessageSquare, GitPullRequest,
   Network, LogOut, Share2, Shield, Wrench, TestTube, Search, Cpu,
   Play, BookMarked, BarChart2, TrendingUp, GitCommit, Plug, Bot,
-  FlaskConical, Layers,
+  FlaskConical, Layers, Heart, AlertOctagon, FileText, Flag, Terminal,
 } from 'lucide-react'
 import { useAppStore } from '../store'
 import { cn } from '../lib/utils'
@@ -32,9 +32,19 @@ const navGroups = [
   {
     label: 'Architecture',
     items: [
-      { to: '/architecture',    icon: Network,  label: 'Architecture' },
-      { to: '/knowledge-graph', icon: Share2,   label: 'Knowledge Graph' },
-      { to: '/system-design',   icon: Cpu,      label: 'System Design' },
+      { to: '/architecture',    icon: Network,        label: 'Architecture' },
+      { to: '/knowledge-graph', icon: Share2,         label: 'Knowledge Graph' },
+      { to: '/system-design',   icon: Cpu,            label: 'System Design' },
+      { to: '/governance',      icon: AlertOctagon,   label: 'Governance' },
+    ],
+  },
+  {
+    label: 'Enterprise',
+    items: [
+      { to: '/health-score',       icon: Heart,       label: 'Health Score' },
+      { to: '/reports',            icon: FileText,    label: 'Reports' },
+      { to: '/sandbox',            icon: Terminal,    label: 'Code Sandbox' },
+      { to: '/feature-flags',      icon: Flag,        label: 'Feature Flags' },
     ],
   },
   {

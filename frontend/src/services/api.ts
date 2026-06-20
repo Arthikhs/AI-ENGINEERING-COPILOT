@@ -163,4 +163,36 @@ export const listAutonomousJobs = (repo_id?: string) =>
 export const getCostSummary = (days: number = 7) =>
   api.get(`/analytics/costs/summary?days=${days}`)
 
+// Enterprise: Health Score
+export const getHealthScore = (repo_id: string) =>
+  api.get(`/enterprise/health-score/${repo_id}`)
+export const getHealthScoreHistory = (repo_id: string) =>
+  api.get(`/enterprise/health-score/${repo_id}/history`)
+
+// Enterprise: Governance
+export const getGovernanceReport = (repo_id: string) =>
+  api.get(`/enterprise/governance/${repo_id}`)
+export const getGovernanceViolations = (repo_id: string, severity?: string) =>
+  api.get(`/enterprise/governance/${repo_id}/violations`, { params: severity ? { severity } : {} })
+
+// Enterprise: Reports
+export const getDailyReport = (date?: string) =>
+  api.get('/enterprise/reports/daily', { params: date ? { date } : {} })
+export const getWeeklyReport = () => api.get('/enterprise/reports/weekly')
+export const getMonthlyReport = () => api.get('/enterprise/reports/monthly')
+
+// Enterprise: Sandbox
+export const executeSandbox = (code: string, language: string) =>
+  api.post('/enterprise/sandbox/execute', { code, language })
+
+// Enterprise: Feature Flags
+export const listFeatureFlags = () => api.get('/enterprise/feature-flags')
+export const upsertFeatureFlag = (name: string, is_enabled: boolean, rollout_percentage = 100) =>
+  api.post(`/enterprise/feature-flags/${name}`, { is_enabled, rollout_percentage })
+
+// Enterprise: LLM Evaluation
+export const runLLMEval = (model: string, task_type: string, question: string, answer: string, contexts: string[]) =>
+  api.post('/enterprise/eval/run', { model, task_type, question, answer, contexts })
+export const getEvalStats = () => api.get('/enterprise/eval/stats')
+
 export default api

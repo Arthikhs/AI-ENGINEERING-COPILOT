@@ -382,6 +382,88 @@ class KnowledgeNode(Base):
                                   back_populates="target", cascade="all, delete-orphan")
 
 
+# ─── Enterprise Feature Models ──────────────────────────────────────────────
+
+class SandboxExecution(Base):
+    __tablename__ = "sandbox_executions"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id = Column(UUID(as_uuid=True), nullable=True)
+    language = Column(String, nullable=False)
+    code = Column(Text, nullable=False)
+    status = Column(String, default="pending")
+    stdout = Column(Text, nullable=True)
+    stderr = Column(Text, nullable=True)
+    exit_code = Column(Integer, nullable=True)
+    execution_time_ms = Column(Integer, default=0)
+    memory_used_mb = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class GovernanceViolation(Base):
+    __tablename__ = "governance_violations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    repo_id = Column(UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False)
+    rule_type = Column(String, nullable=False)
+    severity = Column(String, default="medium")
+    file_path = Column(String, nullable=True)
+    description = Column(Text, nullable=False)
+    suggestion = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class RepoHealthScore(Base):
+    __tablename__ = "repo_health_scores"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    repo_id = Column(UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False)
+    overall_score = Column(Float, default=0.0)
+    security_score = Column(Float, default=0.0)
+    architecture_score = Column(Float, default=0.0)
+    test_coverage_score = Column(Float, default=0.0)
+    code_quality_score = Column(Float, default=0.0)
+    dependency_score = Column(Float, default=0.0)
+    documentation_score = Column(Float, default=0.0)
+    details = Column(JSON, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class EngineeringReport(Base):
+    __tablename__ = "engineering_reports"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    report_type = Column(String, nullable=False)
+    period_start = Column(DateTime, nullable=True)
+    period_end = Column(DateTime, nullable=True)
+    content = Column(JSON, default={})
+    pdf_path = Column(String, nullable=True)
+    delivered_to = Column(JSON, default=[])
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class LLMEvaluation(Base):
+    __tablename__ = "llm_evaluations"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    benchmark_run_id = Column(UUID(as_uuid=True), nullable=True)
+    model = Column(String, nullable=False)
+    task_type = Column(String, nullable=False)
+    question = Column(Text, nullable=True)
+    answer = Column(Text, nullable=True)
+    faithfulness = Column(Float, nullable=True)
+    relevance = Column(Float, nullable=True)
+    hallucination_score = Column(Float, nullable=True)
+    latency_ms = Column(Integer, default=0)
+    cost_usd = Column(Float, default=0.0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class FeatureFlag(Base):
+    __tablename__ = "feature_flags"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, unique=True, nullable=False)
+    is_enabled = Column(Boolean, default=False)
+    rollout_percentage = Column(Integer, default=100)
+    config = Column(JSON, default={})
+    updated_at = Column(DateTime, default=datetime.utcnow)
+
+
 class KnowledgeEdge(Base):
     """
     A directed edge between two knowledge nodes.

@@ -54,6 +54,10 @@ def _job_to_dict(job: AutonomousEngineerJob) -> Dict[str, Any]:
         "files_changed": job.files_changed or [],
         "step_log":      job.step_log or [],
         "error":         job.error,
+        "requirements":  (job.step_log or [{}])[0] if False else job.extra_data.get("requirements", {}) if hasattr(job, 'extra_data') and job.extra_data else {},
+        "plan":          job.extra_data.get("plan", {}) if hasattr(job, 'extra_data') and job.extra_data else {},
+        "test_results":  job.extra_data.get("test_results", {}) if hasattr(job, 'extra_data') and job.extra_data else {},
+        "review_result": job.extra_data.get("review_result", {}) if hasattr(job, 'extra_data') and job.extra_data else {},
         "created_at":    job.created_at.isoformat() if job.created_at else None,
     }
 
@@ -97,6 +101,8 @@ async def _run_agent(job_id: str, repo_full_name: str, repo_id: str, github_toke
                 job.files_changed = result_data.get("files_changed", [])
                 job.step_log      = result_data.get("step_log", [])
                 job.error         = result_data.get("error")
+                # Store enterprise fields in step_log extra slot
+                job.step_log = result_data.get("step_log", [])
                 await db.commit()
 
     except Exception as e:
