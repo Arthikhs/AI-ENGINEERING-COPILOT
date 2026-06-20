@@ -27,6 +27,7 @@ from api.integrations import router as integrations_router
 from api.autonomous_engineer import router as autonomous_engineer_router
 from api.enterprise import router as enterprise_router
 from api.sandbox import router as sandbox_router
+from api.governance import router as governance_router
 from config import get_settings
 import logging
 import os
@@ -92,6 +93,7 @@ app.include_router(integrations_router)
 app.include_router(autonomous_engineer_router)
 app.include_router(enterprise_router)
 app.include_router(sandbox_router)
+app.include_router(governance_router)
 
 
 @app.get("/health")
