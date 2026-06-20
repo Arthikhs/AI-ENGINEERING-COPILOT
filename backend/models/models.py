@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, ForeignKey, JSON, Enum as SAEnum
+from sqlalchemy import Column, String, Boolean, DateTime, Text, Integer, Float, ForeignKey, JSON, Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID
 import enum
@@ -146,7 +146,7 @@ class CodeChunk(Base):
     start_line = Column(Integer, nullable=True)
     end_line = Column(Integer, nullable=True)
     language = Column(String, nullable=True)
-    metadata = Column(JSON, default={})
+    extra_metadata = Column("metadata", JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
 
     file = relationship("CodeFile", back_populates="chunks")
@@ -248,8 +248,8 @@ class AgentRun(Base):
     latency_ms = Column(Integer, default=0)
     input_tokens = Column(Integer, default=0)
     output_tokens = Column(Integer, default=0)
-    estimated_cost_usd = Column(String, default="0")
-    quality_score = Column(String, default="0")
+    estimated_cost_usd = Column(Float, default=0.0)
+    quality_score = Column(Float, default=0.0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -298,10 +298,10 @@ class BenchmarkRun(Base):
     test_cases = Column(JSON, default=[])
     results = Column(JSON, default=[])
     status = Column(String, default="pending")       # pending | running | completed
-    accuracy = Column(String, nullable=True)
+    accuracy = Column(Float, nullable=True)
     avg_latency_ms = Column(Integer, nullable=True)
-    total_cost_usd = Column(String, nullable=True)
-    hallucination_rate = Column(String, nullable=True)
+    total_cost_usd = Column(Float, nullable=True)
+    hallucination_rate = Column(Float, nullable=True)
     created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -328,6 +328,35 @@ class ChangeIntelligenceReport(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+# ─── Autonomous Engineer Job Model ───────────────────────────────────────────
+
+class AutonomousEngineerJob(Base):
+    """
+    Persists the state of an Autonomous Engineer pipeline run.
+    Replaces the in-memory _jobs dict so jobs survive server restarts.
+    """
+    __tablename__ = "autonomous_engineer_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    repo_id = Column(UUID(as_uuid=True), ForeignKey("repositories.id"), nullable=False)
+    repo_full_name = Column(String, nullable=False)
+    issue_number = Column(Integer, nullable=False)
+    issue_title = Column(String, nullable=True)
+    status = Column(String, default="queued")          # queued | running | completed | failed
+    branch_name = Column(String, nullable=True)
+    pr_url = Column(String, nullable=True)
+    pr_number = Column(Integer, nullable=True)
+    files_changed = Column(JSON, default=[])
+    step_log = Column(JSON, default=[])
+    error = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User")
+    repository = relationship("Repository")
+
+
 # ─── Knowledge Graph Models ───────────────────────────────────────────────────
 
 class KnowledgeNode(Base):
@@ -344,7 +373,7 @@ class KnowledgeNode(Base):
     name = Column(String, nullable=False)               # e.g. "UserService", "auth"
     file_path = Column(String, nullable=True)           # source file
     language = Column(String, nullable=True)
-    metadata = Column(JSON, default={})
+    extra_metadata = Column("metadata", JSON, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
 
     outgoing_edges = relationship("KnowledgeEdge", foreign_keys="KnowledgeEdge.source_node_id",

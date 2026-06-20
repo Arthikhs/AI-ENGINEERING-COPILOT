@@ -24,7 +24,6 @@ async def github_login():
     github_auth_url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.github_client_id}"
-        f"&redirect_uri={settings.github_redirect_uri}"
         f"&scope=repo,user:email"
     )
     return {"auth_url": github_auth_url}

@@ -52,7 +52,7 @@ class AgentOrchestrator:
         graph = StateGraph(AgentState)
 
         graph.add_node("detect_intent",       self._detect_intent)
-        graph.add_node("qa_agent",             QAAgent(self.db, self.vector_store, self.llm).run)
+        graph.add_node("qa_agent",             QAAgent(self.db, self.vector_store).run)
         graph.add_node("architecture_agent",   ArchitectureAgent(db=self.db).run_graph)
         graph.add_node("knowledge_graph_agent",self._run_kg_agent)
         graph.add_node("security_agent",       SecurityReviewAgent(db=self.db).run_graph)

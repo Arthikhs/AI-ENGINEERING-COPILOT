@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { Send, Bot, User, FileCode, Loader2, Zap, GitBranch } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism'
-import { getRepositories, sendMessage } from '../services/api'
+import { getRepositories } from '../services/api'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
 import { useAppStore } from '../store'
@@ -102,37 +102,7 @@ export default function ChatPage() {
     }
   }, [convId, multiAgent])
 
-  const sendMutation = useMutation({
-    mutationFn: ({ msg, repoId }: { msg: string; repoId: string }) =>
-      sendMessage(repoId, msg, convId ?? undefined, multiAgent ? 'multi_agent' : 'simple').then((r) => r.data),
-    onMutate: ({ msg }) => {
-      setMessages((prev) => [...prev, { role: 'user', content: msg, id: Date.now() }])
-      setInput('')
-    },
-    onSuccess: (data) => {
-      setConvId(data.conversation_id)
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: 'assistant',
-          content: data.content,
-          agent_type: data.agent_type,
-          agents_used: data.agents_used,
-          plan: data.plan,
-          sources: data.sources,
-          id: data.message_id,
-        },
-      ])
-    },
-    onError: () => {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: 'Something went wrong. Please try again.', id: Date.now() },
-      ])
-    },
-  })
-
-  const isLoading = streaming || sendMutation.isPending
+  const isLoading = streaming
 
   const handleSend = (msg?: string) => {
     const text = msg ?? input
@@ -285,7 +255,7 @@ export default function ChatPage() {
             </div>
           ))}
 
-          {sendMutation.isPending || (streaming && messages[messages.length - 1]?.role !== 'assistant') ? (
+          {isLoading && messages[messages.length - 1]?.role !== 'assistant' ? (
             <div className="flex gap-3">
               <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
                 <Loader2 size={15} className="text-indigo-600 animate-spin" />

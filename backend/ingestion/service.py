@@ -96,15 +96,17 @@ class IngestionService:
             chunker = CodeChunker()
             embedding_service = EmbeddingService()
 
-            # Walk repository files
-            for file_path in Path(tmpdir).rglob("*"):
-                if not file_path.is_file():
-                    continue
-                if any(skip in file_path.parts for skip in SKIP_DIRS):
-                    continue
-                if file_path.suffix not in SUPPORTED_EXTENSIONS:
-                    continue
+            # Count total files for progress reporting
+            all_files = [
+                fp for fp in Path(tmpdir).rglob("*")
+                if fp.is_file()
+                and not any(skip in fp.parts for skip in SKIP_DIRS)
+                and fp.suffix in SUPPORTED_EXTENSIONS
+            ]
+            total_files = max(len(all_files), 1)
 
+            # Walk repository files
+            for file_path in all_files:
                 relative_path = str(file_path.relative_to(tmpdir))
                 try:
                     content = file_path.read_text(encoding="utf-8", errors="ignore")

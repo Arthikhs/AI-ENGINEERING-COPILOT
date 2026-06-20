@@ -2,10 +2,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, GitBranch, MessageSquare, GitPullRequest,
   Network, LogOut, Share2, Shield, Wrench, TestTube, Search, Cpu,
-  Play, BookMarked, BarChart2, TrendingUp, GitCommit, Plug,
+  Play, BookMarked, BarChart2, TrendingUp, GitCommit, Plug, Bot,
+  FlaskConical, Layers,
 } from 'lucide-react'
-import { useAppStore } from '../../store'
-import { cn } from '../../lib/utils'
+import { useAppStore } from '../store'
+import { cn } from '../lib/utils'
 
 const navGroups = [
   {
@@ -24,6 +25,8 @@ const navGroups = [
       { to: '/security',       icon: Shield,         label: 'Security' },
       { to: '/refactoring',    icon: Wrench,         label: 'Refactoring' },
       { to: '/test-generation',icon: TestTube,       label: 'Test Generation' },
+      { to: '/agents',         icon: Layers,         label: 'AI Agents' },
+      { to: '/eval',           icon: FlaskConical,   label: 'LLM Evaluation' },
     ],
   },
   {
@@ -37,6 +40,7 @@ const navGroups = [
   {
     label: 'AI Platform',
     items: [
+      { to: '/autonomous-engineer',icon: Bot,        label: '🤖 Auto Engineer' },
       { to: '/playground',         icon: Play,       label: 'Agent Playground' },
       { to: '/prompts',            icon: BookMarked, label: 'Prompts' },
       { to: '/benchmarks',         icon: BarChart2,  label: 'Benchmarks' },

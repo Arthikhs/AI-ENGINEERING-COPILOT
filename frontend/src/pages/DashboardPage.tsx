@@ -12,15 +12,16 @@ import { useAppStore } from '../store'
 import { formatDate } from '../lib/utils'
 
 const QUICK_ACTIONS = [
-  { label: 'Chat with Code',    icon: MessageSquare, to: '/chat',              desc: 'Ask questions about your codebase',         color: 'bg-indigo-50 text-indigo-600' },
-  { label: 'Agent Playground',  icon: Play,          to: '/playground',         desc: 'Run any agent interactively',               color: 'bg-purple-50 text-purple-600' },
-  { label: 'Security Scan',     icon: ShieldAlert,   to: '/security',           desc: 'Detect vulnerabilities via Claude 3.5',     color: 'bg-red-50 text-red-600' },
-  { label: 'PR Review',         icon: GitPullRequest,to: '/pr-review',          desc: 'AI-powered pull request analysis',           color: 'bg-blue-50 text-blue-600' },
-  { label: 'Knowledge Graph',   icon: Network,       to: '/knowledge-graph',    desc: 'KG + RAG Fusion query',                     color: 'bg-green-50 text-green-600' },
-  { label: 'Change Intel',      icon: GitCommit,     to: '/change-intelligence',desc: 'Push event impact analysis',                color: 'bg-orange-50 text-orange-600' },
-  { label: 'Benchmarks',        icon: BarChart2,     to: '/benchmarks',         desc: 'Compare agent versions',                    color: 'bg-yellow-50 text-yellow-600' },
-  { label: 'Executive View',    icon: TrendingUp,    to: '/executive',          desc: 'Cost, risk, AI usage for managers',         color: 'bg-teal-50 text-teal-600' },
-  { label: 'Slack / Teams',     icon: Plug,          to: '/integrations',       desc: '@copilot commands integration',             color: 'bg-pink-50 text-pink-600' },
+  { label: 'Chat with Code',    icon: MessageSquare, to: '/chat',                desc: 'Ask questions about your codebase',         color: 'bg-indigo-50 text-indigo-600' },
+  { label: 'Auto Engineer',     icon: Bot,           to: '/autonomous-engineer', desc: 'Issue → Code → Tests → PR automatically',   color: 'bg-violet-50 text-violet-600' },
+  { label: 'Agent Playground',  icon: Play,          to: '/playground',          desc: 'Run any agent interactively',               color: 'bg-purple-50 text-purple-600' },
+  { label: 'Security Scan',     icon: ShieldAlert,   to: '/security',            desc: 'Detect vulnerabilities via Claude 3.5',     color: 'bg-red-50 text-red-600' },
+  { label: 'PR Review',         icon: GitPullRequest,to: '/pr-review',           desc: 'AI-powered pull request analysis',           color: 'bg-blue-50 text-blue-600' },
+  { label: 'Knowledge Graph',   icon: Network,       to: '/knowledge-graph',     desc: 'KG + RAG Fusion query',                     color: 'bg-green-50 text-green-600' },
+  { label: 'Change Intel',      icon: GitCommit,     to: '/change-intelligence', desc: 'Push event impact analysis',                color: 'bg-orange-50 text-orange-600' },
+  { label: 'Benchmarks',        icon: BarChart2,     to: '/benchmarks',          desc: 'Compare agent versions',                    color: 'bg-yellow-50 text-yellow-600' },
+  { label: 'Executive View',    icon: TrendingUp,    to: '/executive',           desc: 'Cost, risk, AI usage for managers',         color: 'bg-teal-50 text-teal-600' },
+  { label: 'Slack / Teams',     icon: Plug,          to: '/integrations',        desc: '@copilot commands integration',             color: 'bg-pink-50 text-pink-600' },
 ]
 
 function StatCard({ icon: Icon, label, value, sub, color, onClick }: any) {

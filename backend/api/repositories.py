@@ -103,13 +103,17 @@ async def index_repository(
     await db.commit()
     await db.refresh(sync)
 
-    # Try Celery first, fall back to BackgroundTasks if worker not running
+    # Try Celery first, fall back to BackgroundTasks-safe coroutine
     try:
         from worker import ingest_repository
         ingest_repository.delay(str(repo.id), str(sync.id), current_user.github_access_token)
     except Exception:
         import asyncio
-        asyncio.create_task(
+        from fastapi import BackgroundTasks
+        # Safe fallback: run in a new thread-isolated event loop via asyncio.ensure_future
+        # only works when an event loop is already running (FastAPI context)
+        loop = asyncio.get_event_loop()
+        loop.create_task(
             IngestionService.run_ingestion(str(repo.id), str(sync.id), current_user.github_access_token)
         )
 

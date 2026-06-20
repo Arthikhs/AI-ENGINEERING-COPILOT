@@ -1,6 +1,6 @@
 import { Outlet, Navigate } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
-import { useAppStore } from '../../store'
+import { useAppStore } from '../store'
 
 export function Layout() {
   const { token } = useAppStore()

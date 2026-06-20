@@ -54,8 +54,8 @@ export default function ExecutivePage() {
 
   const d = data
   const prTotal = Object.values(d?.pr_trends?.by_risk_level ?? {}).reduce((s: any, v: any) => s + v, 0) as number
-  const topTask = Object.entries(d?.ai_usage?.by_task_type ?? {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
-  const topModel = Object.entries(d?.ai_usage?.model_distribution ?? {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0]
+  const topTask = Object.entries(d?.ai_usage?.by_task_type ?? {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0] as [string, number] | undefined
+  const topModel = Object.entries(d?.ai_usage?.model_distribution ?? {}).sort((a, b) => (b[1] as number) - (a[1] as number))[0] as [string, number] | undefined
 
   return (
     <div className="p-8 max-w-6xl">
@@ -131,7 +131,7 @@ export default function ExecutivePage() {
                 <p className="text-sm text-gray-400">No AI runs recorded yet.</p>
               )}
             </div>
-            {topTask && <p className="text-xs text-gray-400 mt-3">Top task: <strong>{topTask[0]}</strong> ({topTask[1]} runs)</p>}
+            {topTask && <p className="text-xs text-gray-400 mt-3">Top task: <strong>{topTask[0]}</strong> ({String(topTask[1])} runs)</p>}
           </CardContent>
         </Card>
       </div>
@@ -200,7 +200,7 @@ export default function ExecutivePage() {
             )}
             {topModel && (
               <p className="text-xs text-gray-400 mt-3">
-                Most used model: <strong className="text-gray-600">{topModel[0]}</strong> ({topModel[1]} runs)
+                Most used model: <strong className="text-gray-600">{topModel[0]}</strong> ({String(topModel[1])} runs)
               </p>
             )}
           </CardContent>

@@ -20,6 +20,9 @@ import BenchmarkPage from './pages/BenchmarkPage'
 import ExecutivePage from './pages/ExecutivePage'
 import ChangeIntelligencePage from './pages/ChangeIntelligencePage'
 import IntegrationsPage from './pages/IntegrationsPage'
+import AutonomousEngineerPage from './pages/AutonomousEngineerPage'
+import AgentsPage from './pages/AgentsPage'
+import EvalPage from './pages/EvalPage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -50,6 +53,9 @@ export default function App() {
             <Route path="/executive" element={<ExecutivePage />} />
             <Route path="/change-intelligence" element={<ChangeIntelligencePage />} />
             <Route path="/integrations" element={<IntegrationsPage />} />
+            <Route path="/autonomous-engineer" element={<AutonomousEngineerPage />} />
+            <Route path="/agents" element={<AgentsPage />} />
+            <Route path="/eval" element={<EvalPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -12,6 +12,7 @@ Routing table:
   pr_review         → gpt-4o-mini
 """
 import time
+import asyncio
 import logging
 from typing import Any, Dict, Optional
 from langchain.schema import BaseMessage
@@ -129,6 +130,12 @@ async def routed_invoke(
         f"latency={latency_ms}ms tokens={input_tokens}+{output_tokens} cost=${cost:.5f}"
     )
 
+    # Fire-and-forget AgentRun record — only for background/anonymous calls.
+    # Endpoints that have a user context (e.g. /router/invoke) write their own record.
+    asyncio.ensure_future(_persist_agent_run(
+        task_type, model, provider, latency_ms, input_tokens, output_tokens, round(cost, 6), quality
+    ))
+
     return {
         "response": response,
         "model": model,
@@ -140,3 +147,31 @@ async def routed_invoke(
         "estimated_cost_usd": round(cost, 6),
         "quality_score": quality,
     }
+
+
+async def _persist_agent_run(
+    task_type: str, model: str, provider: str,
+    latency_ms: int, input_tokens: int, output_tokens: int,
+    cost: float, quality: float,
+) -> None:
+    """Write an AgentRun telemetry record without blocking the caller."""
+    try:
+        from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+        from models.models import AgentRun
+        engine = create_async_engine(settings.database_url, pool_pre_ping=True)
+        Session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with Session() as db:
+            db.add(AgentRun(
+                task_type=task_type,
+                model=model,
+                provider=provider,
+                latency_ms=latency_ms,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                estimated_cost_usd=cost,
+                quality_score=quality,
+            ))
+            await db.commit()
+        await engine.dispose()
+    except Exception as e:
+        logger.warning(f"[ModelRouter] AgentRun persist failed (non-fatal): {e}")

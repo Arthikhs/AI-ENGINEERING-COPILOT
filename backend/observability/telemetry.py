@@ -1,11 +1,16 @@
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 from fastapi import FastAPI, Response
 import time
 import logging
+
+try:
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    _OTEL_FASTAPI_AVAILABLE = True
+except Exception:
+    _OTEL_FASTAPI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +42,8 @@ INGESTION_CHUNKS = Counter(
 
 
 def setup_observability(app: FastAPI):
-    FastAPIInstrumentor.instrument_app(app)
+    if _OTEL_FASTAPI_AVAILABLE:
+        FastAPIInstrumentor.instrument_app(app)
 
     @app.middleware("http")
     async def metrics_middleware(request, call_next):

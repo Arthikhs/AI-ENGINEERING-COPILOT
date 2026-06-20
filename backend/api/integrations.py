@@ -151,7 +151,6 @@ async def _handle_command(
         pr_number = cmd.get("pr_number")
         if not pr_number:
             return "Please specify a PR number. Usage: `@copilot review pr #123`"
-        # Find the most recently connected repo for this user
         result = await db.execute(
             select(Repository).where(Repository.is_indexed == True).limit(1)
         )
@@ -161,10 +160,14 @@ async def _handle_command(
         try:
             from agents.pr_review_agent import PRReviewAgent
             agent = PRReviewAgent(
-                github_token=getattr(settings, "github_token", ""),
+                github_token=repo.owner.github_access_token if repo.owner else getattr(settings, "github_token", ""),
                 db=db,
             )
-            review = await agent.review(str(repo.id), pr_number)
+            review = await agent.review(
+                repo_full_name=repo.full_name,
+                pr_number=pr_number,
+                repo_id=str(repo.id),
+            )
             risk = review.get("risk_level", "unknown").upper()
             summary = review.get("summary", "No summary available.")
             findings_count = len(review.get("findings", []))

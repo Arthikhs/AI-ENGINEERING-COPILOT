@@ -56,9 +56,24 @@ async def create_approval_request(state: HITLState, db: AsyncSession) -> HITLSta
         f for f in state["findings"]
         if f.get("severity", "").upper() in ("CRITICAL", "HIGH")
     ]
+
+    # Resolve repo_full_name from DB so post_github_comment can use it
+    repo_full_name = None
+    try:
+        from models.models import Repository
+        result = await db.execute(
+            select(Repository).where(Repository.id == state["repo_id"])
+        )
+        repo = result.scalar_one_or_none()
+        if repo:
+            repo_full_name = repo.full_name
+    except Exception:
+        pass
+
     approval = HITLApproval(
         id=approval_id,
         repo_id=state["repo_id"],
+        repo_full_name=repo_full_name,
         pr_number=state.get("pr_number"),
         findings=high_findings,
         overall_risk=state["overall_risk"],

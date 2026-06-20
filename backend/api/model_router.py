@@ -98,7 +98,8 @@ async def invoke_routed(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # Persist run record
+    # routed_invoke already persists a run via _persist_agent_run (fire-and-forget).
+    # Here we update it with the user_id by adding a separate user-linked record.
     run = AgentRun(
         user_id=current_user.id,
         task_type=result["task_type"],

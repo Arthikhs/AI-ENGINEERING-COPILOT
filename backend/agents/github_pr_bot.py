@@ -69,6 +69,22 @@ class GitHubPRBot:
         # Post comment to GitHub PR
         posted = await self._post_comment(repo_full_name, pr_number, comment_body)
 
+        # Notify Slack / Teams if risk is high or critical
+        risk = review.get("risk_level", "low")
+        if risk in ("high", "critical"):
+            emoji = RISK_EMOJI.get(risk, "⚪")
+            slack_msg = (
+                f"{emoji} *PR Review Alert* — `{repo_full_name}` PR #{pr_number}\n"
+                f"Risk: *{risk.upper()}* · {len(review.get('findings', []))} finding(s)\n"
+                f"{review.get('summary', '')[:300]}"
+            )
+            try:
+                from api.integrations import notify_slack, notify_teams
+                await notify_slack(slack_msg)
+                await notify_teams(slack_msg)
+            except Exception as e:
+                logger.warning(f"PR bot notification failed (non-fatal): {e}")
+
         return {
             "pr_number": pr_number,
             "risk_level": review["risk_level"],

@@ -145,6 +145,23 @@ class ChangeIntelligenceAgent:
         await self.db.refresh(report)
 
         report_data["report_id"] = str(report.id)
+
+        # Notify Slack / Teams if any HIGH/CRITICAL risks found
+        high_risks = [r for r in analysis.get("risks", []) if r.get("level", "").upper() in ("HIGH", "CRITICAL")]
+        if high_risks:
+            msg = (
+                f"⚠️ *Change Intelligence Alert* — `{repo_full_name}`\n"
+                f"Commit `{commit_sha[:8]}` by {pusher} on `{branch}`\n"
+                f"{len(high_risks)} high/critical risk(s) detected\n"
+                f"{analysis.get('summary', '')[:300]}"
+            )
+            try:
+                from api.integrations import notify_slack, notify_teams
+                await notify_slack(msg)
+                await notify_teams(msg)
+            except Exception as e:
+                logger.warning(f"Change intel notification failed (non-fatal): {e}")
+
         return report_data
 
     # ── Helpers ───────────────────────────────────────────────────────────────

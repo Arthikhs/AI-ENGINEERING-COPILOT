@@ -151,6 +151,14 @@ export const getIntegrationConfig = () => api.get('/integrations/config')
 export const testIntegrationCommand = (text: string) =>
   api.post('/integrations/test-command', { text })
 
+// Autonomous Engineer
+export const runAutonomousEngineer = (repo_id: string, issue_number: number) =>
+  api.post('/autonomous-engineer/run', { repo_id, issue_number })
+export const getAutonomousJob = (job_id: string) =>
+  api.get(`/autonomous-engineer/jobs/${job_id}`)
+export const listAutonomousJobs = (repo_id?: string) =>
+  api.get('/autonomous-engineer/jobs', { params: repo_id ? { repo_id } : {} })
+
 // Cost Analytics
 export const getCostSummary = (days: number = 7) =>
   api.get(`/analytics/costs/summary?days=${days}`)

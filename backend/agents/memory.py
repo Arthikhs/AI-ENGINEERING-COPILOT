@@ -55,3 +55,7 @@ class AgentMemory:
             lines.append(f"{role}: {m['content']}")
         lines.append("=== End of Previous Conversation ===\n")
         return "\n".join(lines)
+
+    # alias used by qa_agent.py
+    def format_memory_for_prompt(self, memory: List[Dict]) -> str:
+        return self.format_for_prompt(memory)

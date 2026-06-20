@@ -38,6 +38,7 @@ from agents.documentation_agent import DocumentationAgent
 from agents.reviewer_agent import ReviewerAgent
 from agents.response_agent import ResponseAgent
 from agents.memory import AgentMemory
+from config import get_settings
 import logging
 
 logger = logging.getLogger(__name__)
