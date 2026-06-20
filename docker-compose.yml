@@ -1,4 +1,3 @@
-version: "3.9"
 
 services:
   postgres:
@@ -36,7 +35,7 @@ services:
       dockerfile: Dockerfile
     container_name: copilot_backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       DATABASE_URL: postgresql+asyncpg://copilot:copilot123@postgres:5432/copilot_db
       SYNC_DATABASE_URL: postgresql://copilot:copilot123@postgres:5432/copilot_db
