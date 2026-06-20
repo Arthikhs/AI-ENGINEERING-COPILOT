@@ -26,6 +26,7 @@ import EvalPage from './pages/EvalPage'
 import HealthScorePage from './pages/HealthScorePage'
 import GovernancePage from './pages/GovernancePage'
 import ReportsPage from './pages/ReportsPage'
+import SandboxPage from './pages/SandboxPage'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/health-score" element={<HealthScorePage />} />
             <Route path="/governance" element={<GovernancePage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/sandbox" element={<SandboxPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

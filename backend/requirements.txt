@@ -62,6 +62,9 @@ aiocache==0.12.2
 # Celery async workers
 celery==5.4.0
 
+# Docker SDK (sandbox execution)
+docker==7.1.0
+
 # Diagram generation
 jinja2==3.1.4
 
