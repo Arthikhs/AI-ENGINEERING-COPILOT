@@ -24,6 +24,7 @@ async def github_login():
     github_auth_url = (
         f"https://github.com/login/oauth/authorize"
         f"?client_id={settings.github_client_id}"
+        f"&redirect_uri={settings.github_redirect_uri}"
         f"&scope=repo,user:email"
     )
     return {"auth_url": github_auth_url}
@@ -40,6 +41,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
                 "client_id": settings.github_client_id,
                 "client_secret": settings.github_client_secret,
                 "code": code,
+                "redirect_uri": settings.github_redirect_uri,
             },
             headers={"Accept": "application/json"},
         )
@@ -47,7 +49,7 @@ async def github_callback(code: str, db: AsyncSession = Depends(get_db)):
 
     github_token = token_data.get("access_token")
     if not github_token:
-        raise HTTPException(status_code=400, detail="GitHub OAuth failed")
+        raise HTTPException(status_code=400, detail=f"GitHub OAuth failed: {token_data}")
 
     # Fetch GitHub user info
     async with httpx.AsyncClient() as client:

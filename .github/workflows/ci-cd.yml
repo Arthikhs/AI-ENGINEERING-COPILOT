@@ -180,5 +180,17 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
-      - name: Deploy placeholder
-        run: echo "✅ Build complete. Add DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY secrets to enable SSH deploy."
+      - uses: actions/checkout@v4
+
+      - name: Deploy via SSH to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ubuntu
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/AI-ENGINEERING-COPILOT
+            git pull origin main
+            docker compose -f docker-compose.prod.yml up -d --build --remove-orphans
+            docker system prune -f
+            echo "✅ Deployed at $(date)"
