@@ -180,9 +180,28 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
+      - name: Check secrets
+        id: check
+        run: |
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ]; then
+            echo "has_secrets=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_secrets=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Skip deploy (no secrets configured)
+        if: steps.check.outputs.has_secrets == 'false'
+        run: |
+          echo "⏭️  DEPLOY_HOST secret not set — skipping SSH deploy."
+          echo "📝 To enable auto-deploy, add these secrets in GitHub:"
+          echo "     DEPLOY_HOST     = 13.207.198.31"
+          echo "     DEPLOY_SSH_KEY  = (contents of copilot-key.pem)"
+
       - uses: actions/checkout@v4
+        if: steps.check.outputs.has_secrets == 'true'
 
       - name: Deploy via SSH to EC2
+        if: steps.check.outputs.has_secrets == 'true'
         uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.DEPLOY_HOST }}
