@@ -5,7 +5,7 @@ import {
   AlertTriangle, BarChart3, Zap, DollarSign, Brain,
   Trophy, GitCompare, ShieldAlert,
 } from 'lucide-react'
-import { apiClient } from '../services/api'
+import apiClient from '../services/api'
 import { Card, CardContent, CardHeader } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Badge } from '../components/ui/Badge'
