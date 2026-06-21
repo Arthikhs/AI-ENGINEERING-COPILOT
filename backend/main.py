@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from database import init_db
 from observability.telemetry import setup_observability
+from middleware import RateLimitMiddleware, SecurityHeadersMiddleware, RequestIDMiddleware
 from api.github_auth import router as auth_router
 from api.repositories import router as repos_router
 from api.chat import router as chat_router
@@ -29,6 +30,9 @@ from api.enterprise import router as enterprise_router
 from api.sandbox import router as sandbox_router
 from api.governance import router as governance_router
 from api.health_score import router as health_score_router
+from api.quota import router as quota_router
+from api.ai_evaluation import router as ai_eval_router
+from api.observability import router as observability_router
 from config import get_settings
 import logging
 import os
@@ -70,6 +74,11 @@ app.add_middleware(
 
 setup_observability(app)
 
+# Production middleware stack (order matters — outermost runs first)
+app.add_middleware(RequestIDMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
+
 app.include_router(auth_router)
 app.include_router(repos_router)
 app.include_router(chat_router)
@@ -96,6 +105,9 @@ app.include_router(enterprise_router)
 app.include_router(sandbox_router)
 app.include_router(governance_router)
 app.include_router(health_score_router)
+app.include_router(quota_router)
+app.include_router(ai_eval_router)
+app.include_router(observability_router)
 
 
 @app.get("/health")

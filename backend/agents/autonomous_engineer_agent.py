@@ -538,6 +538,9 @@ class AutonomousEngineerAgent:
             "step_log": [],
         }
         result = await self.graph.ainvoke(initial)
+        # Record Prometheus metrics
+        from observability.telemetry import record_autonomous_job
+        record_autonomous_job(result["status"])
         return {
             "status":        result["status"],
             "issue_number":  result["issue_number"],

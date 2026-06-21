@@ -173,6 +173,10 @@ async def execute_code(
 
         container.remove(force=True)
 
+        # Prometheus instrumentation
+        from observability.telemetry import record_sandbox
+        record_sandbox(language, "passed" if exit_code == 0 else ("timeout" if timed_out else "failed"), elapsed / 1000)
+
         return SandboxResult(
             success=exit_code == 0,
             stdout=stdout,

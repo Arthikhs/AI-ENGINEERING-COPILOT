@@ -40,14 +40,13 @@ async def execute_sandbox(req: SandboxRequest, current_user: User = Depends(get_
 
 @router.post("/sandbox/test")
 async def execute_sandbox_tests(
-    source_code: str,
-    test_code: str,
-    language: str = "python",
+    req: SandboxRequest,
+    source_code: str = "",
     current_user: User = Depends(get_current_user)
 ):
     """Execute tests against source code in sandbox."""
     from agents.sandbox import execute_tests
-    result = await execute_tests(test_code, source_code, language)
+    result = await execute_tests(req.code, source_code, req.language)
     return result.to_dict()
 
 
@@ -115,19 +114,21 @@ async def get_health_score_history(
 @router.get("/reports/daily")
 async def get_daily_report(
     date: Optional[str] = None,
-    db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
     """Generate daily engineering intelligence report."""
-    from sqlalchemy.orm import Session
+    import asyncio
     from database import SyncSessionLocal
     target_date = datetime.strptime(date, "%Y-%m-%d") if date else datetime.utcnow()
-    sync_db = SyncSessionLocal()
-    try:
-        report = build_daily_report(sync_db, target_date)
-    finally:
-        sync_db.close()
-    return report
+
+    def _build():
+        sync_db = SyncSessionLocal()
+        try:
+            return build_daily_report(sync_db, target_date)
+        finally:
+            sync_db.close()
+
+    return await asyncio.get_event_loop().run_in_executor(None, _build)
 
 
 @router.get("/reports/weekly")
@@ -135,14 +136,18 @@ async def get_weekly_report(
     current_user: User = Depends(get_current_user)
 ):
     """Generate weekly engineering intelligence report."""
+    import asyncio
     from database import SyncSessionLocal
     week_start = datetime.utcnow() - timedelta(days=7)
-    sync_db = SyncSessionLocal()
-    try:
-        report = build_weekly_report(sync_db, week_start)
-    finally:
-        sync_db.close()
-    return report
+
+    def _build():
+        sync_db = SyncSessionLocal()
+        try:
+            return build_weekly_report(sync_db, week_start)
+        finally:
+            sync_db.close()
+
+    return await asyncio.get_event_loop().run_in_executor(None, _build)
 
 
 @router.get("/reports/monthly")
@@ -150,14 +155,18 @@ async def get_monthly_report(
     current_user: User = Depends(get_current_user)
 ):
     """Generate monthly executive engineering report."""
+    import asyncio
     from database import SyncSessionLocal
     month_start = datetime.utcnow().replace(day=1)
-    sync_db = SyncSessionLocal()
-    try:
-        report = build_monthly_report(sync_db, month_start)
-    finally:
-        sync_db.close()
-    return report
+
+    def _build():
+        sync_db = SyncSessionLocal()
+        try:
+            return build_monthly_report(sync_db, month_start)
+        finally:
+            sync_db.close()
+
+    return await asyncio.get_event_loop().run_in_executor(None, _build)
 
 
 # ─── Feature Flags ────────────────────────────────────────────────────────────
@@ -216,10 +225,6 @@ async def run_evaluation(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Run LLM evaluation with hallucination detection."""
-    from langchain_openai import ChatOpenAI
-    from config import get_settings
-    settings = get_settings()
 
     # Simple hallucination check: verify answer is grounded in contexts
     hallucination_score = 0.0

@@ -1,0 +1,138 @@
+{
+  "uid": "copilot-observability",
+  "title": "AI Engineering Copilot — Enterprise Observability",
+  "tags": ["ai", "copilot", "agents", "llm"],
+  "timezone": "browser",
+  "refresh": "30s",
+  "schemaVersion": 37,
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "title": "API Request Rate", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(api_requests_total[5m])) by (status)", "legendFormat": "HTTP {{status}}" }],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+    {
+      "id": 2, "title": "API p95 Latency", "type": "timeseries",
+      "gridPos": { "x": 8, "y": 0, "w": 8, "h": 6 },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(api_request_duration_seconds_bucket[5m])) by (le, endpoint))", "legendFormat": "{{endpoint}}" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 3, "title": "Active Workflows", "type": "stat",
+      "gridPos": { "x": 16, "y": 0, "w": 4, "h": 3 },
+      "targets": [{ "expr": "sum(active_workflows_count)", "legendFormat": "Active" }],
+      "fieldConfig": { "defaults": { "thresholds": { "steps": [{"value": 0, "color": "green"}, {"value": 10, "color": "yellow"}, {"value": 20, "color": "red"}] } } }
+    },
+    {
+      "id": 4, "title": "Rate Limit Hits/min", "type": "stat",
+      "gridPos": { "x": 20, "y": 0, "w": 4, "h": 3 },
+      "targets": [{ "expr": "sum(rate(rate_limit_hits_total[1m])) * 60", "legendFormat": "Hits/min" }],
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "steps": [{"value": 0, "color": "green"}, {"value": 50, "color": "yellow"}, {"value": 100, "color": "red"}] } } }
+    },
+    {
+      "id": 5, "title": "Agent Runs by Type & Status", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 6 },
+      "targets": [{ "expr": "sum(rate(agent_runs_total[5m])) by (agent_type, status)", "legendFormat": "{{agent_type}} [{{status}}]" }]
+    },
+    {
+      "id": 6, "title": "Agent p90 Execution Latency", "type": "timeseries",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 6 },
+      "targets": [{ "expr": "histogram_quantile(0.90, sum(rate(agent_execution_duration_seconds_bucket[10m])) by (le, agent_type))", "legendFormat": "{{agent_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 7, "title": "Agent Errors by Type", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 12, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(agent_errors_total[5m])) by (agent_type, error_type)", "legendFormat": "{{agent_type}}/{{error_type}}" }]
+    },
+    {
+      "id": 8, "title": "LLM Token Usage / min", "type": "timeseries",
+      "gridPos": { "x": 8, "y": 12, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(llm_tokens_total[1m])) by (model, token_type) * 60", "legendFormat": "{{model}} [{{token_type}}]" }]
+    },
+    {
+      "id": 9, "title": "LLM Cost (USD/hour)", "type": "timeseries",
+      "gridPos": { "x": 16, "y": 12, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(llm_cost_usd_total[1h])) by (model, task_type) * 3600", "legendFormat": "{{model}}/{{task_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "id": 10, "title": "Model Routing Decisions", "type": "piechart",
+      "gridPos": { "x": 0, "y": 18, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(model_routing_decisions_total[1h])) by (model)", "legendFormat": "{{model}}" }]
+    },
+    {
+      "id": 11, "title": "Hallucination Score p75 by Model", "type": "timeseries",
+      "gridPos": { "x": 8, "y": 18, "w": 8, "h": 6 },
+      "targets": [{ "expr": "histogram_quantile(0.75, sum(rate(llm_hallucination_score_bucket[1h])) by (le, model))", "legendFormat": "{{model}} p75" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit", "thresholds": { "steps": [{"value": 0, "color": "green"}, {"value": 0.3, "color": "yellow"}, {"value": 0.6, "color": "red"}] } } }
+    },
+    {
+      "id": 12, "title": "Faithfulness Score p50", "type": "timeseries",
+      "gridPos": { "x": 16, "y": 18, "w": 8, "h": 6 },
+      "targets": [{ "expr": "histogram_quantile(0.50, sum(rate(llm_faithfulness_score_bucket[1h])) by (le, model))", "legendFormat": "{{model}} median" }],
+      "fieldConfig": { "defaults": { "unit": "percentunit" } }
+    },
+    {
+      "id": 13, "title": "Retrieval Latency p95 by Type", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 24, "w": 8, "h": 6 },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(retrieval_duration_seconds_bucket[5m])) by (le, retriever_type))", "legendFormat": "{{retriever_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+    {
+      "id": 14, "title": "Retrieval Hit Rate", "type": "timeseries",
+      "gridPos": { "x": 8, "y": 24, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(retrieval_hits_total[5m])) by (result)", "legendFormat": "{{result}}" }]
+    },
+    {
+      "id": 15, "title": "Sandbox Executions by Language & Status", "type": "timeseries",
+      "gridPos": { "x": 16, "y": 24, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(sandbox_executions_total[5m])) by (language, status)", "legendFormat": "{{language}} [{{status}}]" }]
+    },
+    {
+      "id": 16, "title": "Autonomous Engineer Jobs", "type": "timeseries",
+      "gridPos": { "x": 0, "y": 30, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(autonomous_engineer_jobs_total[1h])) by (status) * 3600", "legendFormat": "{{status}}/hour" }]
+    },
+    {
+      "id": 17, "title": "Workflow Cost Breakdown (USD/hour)", "type": "bargauge",
+      "gridPos": { "x": 8, "y": 30, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(rate(workflow_cost_usd_total[1h])) by (workflow_type) * 3600", "legendFormat": "{{workflow_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "id": 18, "title": "Cost per Workflow Type Today", "type": "piechart",
+      "gridPos": { "x": 16, "y": 30, "w": 8, "h": 6 },
+      "targets": [{ "expr": "sum(increase(workflow_cost_usd_total[24h])) by (workflow_type)", "legendFormat": "{{workflow_type}}" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
+    },
+    {
+      "id": 19, "title": "Total LLM Cost Today", "type": "stat",
+      "gridPos": { "x": 0, "y": 36, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(increase(llm_cost_usd_total[24h]))", "legendFormat": "Today" }],
+      "fieldConfig": { "defaults": { "unit": "currencyUSD", "thresholds": { "steps": [{"value": 0, "color": "green"}, {"value": 25, "color": "yellow"}, {"value": 50, "color": "red"}] } } }
+    },
+    {
+      "id": 20, "title": "PRs Created Today", "type": "stat",
+      "gridPos": { "x": 6, "y": 36, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(increase(pull_requests_created_total[24h]))", "legendFormat": "Today" }],
+      "fieldConfig": { "defaults": { "unit": "short", "color": { "fixedColor": "blue", "mode": "fixed" } } }
+    },
+    {
+      "id": 21, "title": "Ingestion Chunks / min", "type": "stat",
+      "gridPos": { "x": 12, "y": 36, "w": 6, "h": 4 },
+      "targets": [{ "expr": "sum(rate(ingestion_chunks_total[1m])) * 60", "legendFormat": "Chunks/min" }],
+      "fieldConfig": { "defaults": { "unit": "short" } }
+    },
+    {
+      "id": 22, "title": "Knowledge Graph Size", "type": "stat",
+      "gridPos": { "x": 18, "y": 36, "w": 6, "h": 4 },
+      "targets": [
+        { "expr": "sum(knowledge_graph_nodes_total)", "legendFormat": "Nodes" },
+        { "expr": "sum(knowledge_graph_edges_total)", "legendFormat": "Edges" }
+      ]
+    }
+  ]
+}

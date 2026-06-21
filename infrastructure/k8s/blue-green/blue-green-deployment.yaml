@@ -1,0 +1,106 @@
+---
+# ─── Blue Deployment ──────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copilot-backend-blue
+  namespace: copilot
+  labels:
+    app: copilot-backend
+    slot: blue
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: copilot-backend
+      slot: blue
+  template:
+    metadata:
+      labels:
+        app: copilot-backend
+        slot: blue
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-org/ai-engineering-copilot-backend:BLUE_TAG
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: copilot-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+# ─── Green Deployment ─────────────────────────────────────────────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: copilot-backend-green
+  namespace: copilot
+  labels:
+    app: copilot-backend
+    slot: green
+spec:
+  replicas: 0   # Inactive slot starts with 0 replicas
+  selector:
+    matchLabels:
+      app: copilot-backend
+      slot: green
+  template:
+    metadata:
+      labels:
+        app: copilot-backend
+        slot: green
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-org/ai-engineering-copilot-backend:GREEN_TAG
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: copilot-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+---
+# ─── Active Service — points to current active slot ──────────────────────────
+# To switch from blue → green:
+#   kubectl patch service copilot-backend-active -n copilot \
+#     -p '{"spec":{"selector":{"slot":"green"}}}'
+apiVersion: v1
+kind: Service
+metadata:
+  name: copilot-backend-active
+  namespace: copilot
+  annotations:
+    blue-green/active-slot: "blue"
+spec:
+  selector:
+    app: copilot-backend
+    slot: blue          # ← Change this to "green" to switch
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP

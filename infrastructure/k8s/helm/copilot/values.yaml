@@ -1,0 +1,164 @@
+# ─── Global ───────────────────────────────────────────────────────────────────
+global:
+  imageRegistry: "ghcr.io"
+  imagePullPolicy: IfNotPresent
+  namespace: copilot
+
+# ─── Backend ──────────────────────────────────────────────────────────────────
+backend:
+  image:
+    repository: ghcr.io/your-org/ai-engineering-copilot-backend
+    tag: "latest"
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  env:
+    DEBUG: "false"
+    LOG_LEVEL: "info"
+  service:
+    type: ClusterIP
+    port: 8000
+  livenessProbe:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+# ─── Frontend ─────────────────────────────────────────────────────────────────
+frontend:
+  image:
+    repository: ghcr.io/your-org/ai-engineering-copilot-frontend
+    tag: "latest"
+  replicaCount: 2
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  service:
+    type: ClusterIP
+    port: 80
+
+# ─── Celery Worker ────────────────────────────────────────────────────────────
+worker:
+  replicaCount: 2
+  concurrency: 4
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 80
+
+# ─── Ingress ──────────────────────────────────────────────────────────────────
+ingress:
+  enabled: true
+  className: nginx
+  host: "your-domain.com"
+  tls:
+    enabled: true
+    secretName: copilot-tls
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    # Rate limiting
+    nginx.ingress.kubernetes.io/limit-rps: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "20"
+    nginx.ingress.kubernetes.io/limit-req-status-code: "429"
+
+# ─── Secrets (reference Kubernetes secret) ────────────────────────────────────
+secrets:
+  secretName: copilot-secrets
+
+# ─── Redis ────────────────────────────────────────────────────────────────────
+redis:
+  enabled: true
+  architecture: replication
+  auth:
+    enabled: true
+    secretName: copilot-redis-secret
+  master:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
+  replica:
+    replicaCount: 2
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# ─── PostgreSQL ───────────────────────────────────────────────────────────────
+postgresql:
+  enabled: true
+  auth:
+    secretName: copilot-postgres-secret
+  primary:
+    persistence:
+      enabled: true
+      size: 50Gi
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+# ─── Monitoring ───────────────────────────────────────────────────────────────
+monitoring:
+  serviceMonitor:
+    enabled: true
+    interval: 30s
+    path: /metrics
+
+# ─── Blue-Green ───────────────────────────────────────────────────────────────
+blueGreen:
+  enabled: false
+  activeSlot: blue     # blue | green
+  inactiveSlot: green
+
+# ─── Feature Flags ────────────────────────────────────────────────────────────
+featureFlags:
+  autonomous_engineer: true
+  sandbox_execution: true
+  governance_engine: true
+  ai_evaluation: true
+  multi_region: false
+
+# ─── Rate Limiting ────────────────────────────────────────────────────────────
+rateLimit:
+  enabled: true
+  globalRPS: 1000
+  perIPRPS: 100
+  burstMultiplier: 2
+  windowSeconds: 60

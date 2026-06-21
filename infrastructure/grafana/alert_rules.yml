@@ -1,0 +1,156 @@
+groups:
+
+  - name: api_health
+    rules:
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(api_requests_total{status=~"5.."}[5m]))
+          / sum(rate(api_requests_total[5m])) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API error rate >5%"
+          description: "Error rate {{ $value | humanizePercentage }} over last 5m."
+
+      - alert: HighAPILatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(api_request_duration_seconds_bucket[5m])) by (le, endpoint)
+          ) > 10
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API p95 latency >10s on {{ $labels.endpoint }}"
+          description: "p95={{ $value | humanizeDuration }}"
+
+      - alert: RateLimitSpike
+        expr: sum(rate(rate_limit_hits_total[5m])) * 60 > 50
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit hits >50/min"
+
+  - name: agent_health
+    rules:
+      - alert: AgentHighFailureRate
+        expr: |
+          sum(rate(agent_runs_total{status="failed"}[10m])) by (agent_type)
+          / sum(rate(agent_runs_total[10m])) by (agent_type) > 0.20
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Agent {{ $labels.agent_type }} failure rate >20%"
+
+      - alert: AgentSlowExecution
+        expr: |
+          histogram_quantile(0.90,
+            sum(rate(agent_execution_duration_seconds_bucket[10m])) by (le, agent_type)
+          ) > 120
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Agent {{ $labels.agent_type }} p90 >2 minutes"
+
+      - alert: TooManyActiveWorkflows
+        expr: sum(active_workflows_count) > 20
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Too many concurrent workflows ({{ $value }})"
+
+  - name: llm_cost
+    rules:
+      - alert: HighLLMCostRate
+        expr: sum(rate(llm_cost_usd_total[1h])) * 3600 > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM cost >$10/hour (current: ${{ $value | humanize }})"
+
+      - alert: LLMCostSpike
+        expr: |
+          sum(rate(llm_cost_usd_total[5m])) * 300
+          > 2 * sum(rate(llm_cost_usd_total[1h])) * 300
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LLM cost spike — 2x normal rate detected"
+
+  - name: ai_quality
+    rules:
+      - alert: HighHallucinationRate
+        expr: |
+          histogram_quantile(0.75,
+            sum(rate(llm_hallucination_score_bucket[1h])) by (le, model)
+          ) > 0.5
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High hallucination p75={{ $value }} for model {{ $labels.model }}"
+
+      - alert: LowFaithfulnessScore
+        expr: |
+          histogram_quantile(0.50,
+            sum(rate(llm_faithfulness_score_bucket[1h])) by (le, model)
+          ) < 0.4
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low faithfulness median={{ $value }} for {{ $labels.model }}"
+
+  - name: sandbox_health
+    rules:
+      - alert: HighSandboxFailureRate
+        expr: |
+          sum(rate(sandbox_executions_total{status=~"failed|timeout"}[10m])) by (language)
+          / sum(rate(sandbox_executions_total[10m])) by (language) > 0.30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Sandbox failure >30% for {{ $labels.language }}"
+
+  - name: retrieval_health
+    rules:
+      - alert: SlowRetrieval
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(retrieval_duration_seconds_bucket[5m])) by (le, retriever_type)
+          ) > 2.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Retrieval p95 >2s for {{ $labels.retriever_type }}"
+
+      - alert: HighRetrievalMissRate
+        expr: |
+          sum(rate(retrieval_hits_total{result="miss"}[10m]))
+          / sum(rate(retrieval_hits_total[10m])) > 0.40
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Retrieval miss rate >40%"
+
+  - name: autonomous_engineer
+    rules:
+      - alert: AutonomousEngineerHighFailure
+        expr: |
+          sum(rate(autonomous_engineer_jobs_total{status="failed"}[1h]))
+          / sum(rate(autonomous_engineer_jobs_total[1h])) > 0.30
+        for: 10m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Autonomous Engineer failure rate >30% — check GitHub tokens"

@@ -1,0 +1,69 @@
+# ─── PodDisruptionBudget — ensure availability during upgrades ────────────────
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "copilot.fullname" . }}-backend-pdb
+  namespace: {{ .Values.global.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: copilot-backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "copilot.fullname" . }}-frontend-pdb
+  namespace: {{ .Values.global.namespace }}
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: copilot-frontend
+---
+# ─── NetworkPolicy — restrict pod-to-pod traffic ─────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "copilot.fullname" . }}-backend-netpol
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: copilot-backend
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: copilot-frontend
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
+  egress:
+    - {}   # Allow all outbound (GitHub API, OpenAI, etc.)
+---
+# ─── Sandbox NetworkPolicy — total isolation ──────────────────────────────────
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "copilot.fullname" . }}-sandbox-netpol
+  namespace: {{ .Values.global.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: copilot-sandbox
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: copilot-backend
+  egress: []   # No outbound traffic from sandbox pods

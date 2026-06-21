@@ -18,6 +18,9 @@ from typing import Any, Dict, Optional
 from langchain.schema import BaseMessage
 from llm_router import get_llm, MODELS
 from config import get_settings
+from observability.telemetry import (
+    record_token_usage, record_model_routing, LLM_LATENCY, LLM_ERRORS
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -129,6 +132,11 @@ async def routed_invoke(
         f"[ModelRouter] task={task_type} model={model} "
         f"latency={latency_ms}ms tokens={input_tokens}+{output_tokens} cost=${cost:.5f}"
     )
+
+    # Prometheus instrumentation
+    record_token_usage(model, input_tokens, output_tokens, task_type, cost)
+    record_model_routing(task_type, model, provider)
+    LLM_LATENCY.labels(model=model, task_type=task_type).observe(latency_ms / 1000)
 
     # Fire-and-forget AgentRun record — only for background/anonymous calls.
     # Endpoints that have a user context (e.g. /router/invoke) write their own record.

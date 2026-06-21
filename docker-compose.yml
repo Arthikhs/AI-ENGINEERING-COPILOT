@@ -88,8 +88,10 @@ services:
       - "9090:9090"
     volumes:
       - ./infrastructure/grafana/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infrastructure/grafana/alert_rules.yml:/etc/prometheus/alert_rules.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
 
   grafana:
     image: grafana/grafana:latest
@@ -98,8 +100,12 @@ services:
       - "3001:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /etc/grafana/dashboards/copilot_observability.json
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml
+      - ./infrastructure/grafana/dashboards.yml:/etc/grafana/provisioning/dashboards/dashboards.yml
+      - ./infrastructure/grafana/dashboards:/etc/grafana/dashboards
     depends_on:
       - prometheus
 

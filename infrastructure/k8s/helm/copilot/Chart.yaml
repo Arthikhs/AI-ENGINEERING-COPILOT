@@ -1,0 +1,15 @@
+apiVersion: v2
+name: copilot
+description: AI Engineering Copilot Platform — Production Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - engineering
+  - copilot
+  - langgraph
+maintainers:
+  - name: Platform Team
+    email: platform@company.com
+dependencies: []
